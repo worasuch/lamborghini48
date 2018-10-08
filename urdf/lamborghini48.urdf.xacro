@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<robot name="lamborghini48" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!--/*********        config         *********/-->
+  <!--/*****************************************/-->
+  <xacro:property name="bodyL" value="0.64" />
+  <xacro:property name="bodyW" value="0.515" />
+  <xacro:property name="bodyH" value="0.01" />
+  <xacro:property name="wheelD" value="0.127" />
+  <xacro:property name="wheelW" value="0.089" />
+
+  <!--/*********        color          *********/-->
+  <!--/*****************************************/-->
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+  <material name="green">
+    <color rgba="0 1 0 1"/>
+  </material>
+
+  <!--/*********        body_plane     *********/-->
+  <!--/*****************************************/-->
+  <link name="body_plane">
+    <visual>
+      <geometry>
+        <box size="${bodyL} ${bodyW-wheelW} ${bodyH}"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <xacro:macro name="wheel" params="prefix suffix reflect">
+    <link name="${prefix}_${suffix}_wheel">
+      <visual>
+        <geometry>
+          <cylinder length="${wheelW}" radius="${wheelD/2}"/>
+        </geometry>
+        <origin rpy="${pi/2} 0 0" xyz="0 0 0"/>
+        <material name="blue"/>
+      </visual>
+    </link>
+
+    <joint name="${prefix}_${suffix}_wheel_joint" type="continuous">
+      <axis xyz="0 1 0" rpy="0 0 0" />
+      <parent link="${prefix}_base"/>
+      <child link="${prefix}_${suffix}_wheel"/>
+      <origin xyz="0 ${bodyW*reflect/2} 0" rpy="0 0 0"/>
+    </joint>
+    </xacro:macro>
+
+    <xacro:macro name="base" params="prefix reflect">
+      <link name="${prefix}_base">
+        <visual>
+          <geometry>
+            <box size="0.05 ${bodyW-wheelW} 0.05" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <material name="white"/>
+        </visual>
+      </link>
+
+      <joint name="${prefix}_base_joint" type="fixed">
+        <parent link="body_plane"/>
+        <child link="${prefix}_base"/>
+        <origin xyz="${reflect*bodyL/2} 0 0"/>
+      </joint>
+
+      <xacro:wheel prefix="${prefix}" suffix="left" reflect="1"/>
+      <xacro:wheel prefix="${prefix}" suffix="right" reflect="-1"/>
+    </xacro:macro>
+    <xacro:base prefix="back" reflect="-1" />
+    <xacro:base prefix="front" reflect="1" />
+
+</robot>
