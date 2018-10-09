@@ -24,6 +24,16 @@
     <color rgba="0 1 0 1"/>
   </material>
 
+  <!--/*********        inertia        *********/-->
+  <!--/*****************************************/-->
+  <xacro:macro name="default_inertial" params="mass">
+    <inertial>
+      <mass value="${mass}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+    </inertial>
+  </xacro:macro>
+
+
   <!--/*********        body_plane     *********/-->
   <!--/*****************************************/-->
   <link name="body_plane">
@@ -33,6 +43,12 @@
       </geometry>
       <material name="white"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="${bodyL} ${bodyW-wheelW} ${bodyH}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
   </link>
 
   <xacro:macro name="wheel" params="prefix suffix reflect">
@@ -44,6 +60,13 @@
         <origin rpy="${pi/2} 0 0" xyz="0 0 0"/>
         <material name="blue"/>
       </visual>
+      <collision>
+        <origin rpy="${pi/2} 0 0" xyz="0 0 0"/>
+        <geometry>
+          <cylinder length="${wheelW}" radius="${wheelD/2}"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="1"/>
     </link>
 
     <joint name="${prefix}_${suffix}_wheel_joint" type="continuous">
@@ -52,6 +75,7 @@
       <child link="${prefix}_${suffix}_wheel"/>
       <origin xyz="0 ${bodyW*reflect/2} 0" rpy="0 0 0"/>
     </joint>
+
     </xacro:macro>
 
     <xacro:macro name="base" params="prefix reflect">
@@ -63,9 +87,17 @@
           <origin xyz="0 0 0" rpy="0 0 0" />
           <material name="white"/>
         </visual>
+        <collision>
+          <geometry>
+            <box size="0.05 ${bodyW-wheelW} 0.05" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </collision>
+        <xacro:default_inertial mass="1"/>
       </link>
 
       <joint name="${prefix}_base_joint" type="fixed">
+        <axis xyz="0 0 0" rpy="0 0 0" />
         <parent link="body_plane"/>
         <child link="${prefix}_base"/>
         <origin xyz="${reflect*bodyL/2} 0 0"/>
@@ -73,8 +105,25 @@
 
       <xacro:wheel prefix="${prefix}" suffix="left" reflect="1"/>
       <xacro:wheel prefix="${prefix}" suffix="right" reflect="-1"/>
+
     </xacro:macro>
     <xacro:base prefix="back" reflect="-1" />
     <xacro:base prefix="front" reflect="1" />
+
+    <joint name="left_steer_joint" type="revolute">
+      <parent link="front_base"/>
+      <child link="front_left_wheel"/>
+      <axis xyz="0 0 1" rpy="0 0 0"/>
+      <limit effort="1000.0" lower="-0.548" upper="0.548" velocity="0.5"/>
+      <origin xyz="0 ${bodyW/2} 0"/>
+    </joint>
+
+    <joint name="right_steer_joint" type="revolute">
+      <parent link="front_base"/>
+      <child link="front_right_wheel"/>
+      <axis xyz="0 0 1" rpy="0 0 0"/>
+      <limit effort="1000.0" lower="-0.548" upper="0.548" velocity="0.5"/>
+      <origin xyz="0 ${-bodyW/2} 0"/>
+    </joint>
 
 </robot>
